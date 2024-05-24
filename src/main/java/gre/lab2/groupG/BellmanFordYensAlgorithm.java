@@ -65,17 +65,17 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     // à partir des prédécesseurs et des distances.
     // Cette implémentation est simplifiée et peut nécessiter des ajustements.
 
-    Set<Integer> visited = new HashSet<>();
+    boolean[] visited = new boolean[predecessor.length];
     List<Integer> cycle = new ArrayList<>();
 
     for (int i = 0; i < predecessor.length; i++) {
-      if (visited.contains(i)) continue;
+      if (visited[i]) continue;
 
-      Set<Integer> cycleCheck = new HashSet<>();
+      boolean[] cycleCheck = new boolean[predecessor.length];
       int current = i;
 
-      while (current != BFYResult.UNREACHABLE && !cycleCheck.contains(current)) {
-        cycleCheck.add(current);
+      while (current != BFYResult.UNREACHABLE && !cycleCheck[current]) {
+        cycleCheck[current] = true;
         current = predecessor[current];
       }
 
@@ -91,11 +91,16 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
         break;
       }
 
-      visited.addAll(cycleCheck);
+      for (int j = 0; j < cycleCheck.length; j++) {
+        if (cycleCheck[j]) {
+          visited[j] = true;
+        }
+      }
     }
 
     return cycle;
   }
+
 
 }
 
