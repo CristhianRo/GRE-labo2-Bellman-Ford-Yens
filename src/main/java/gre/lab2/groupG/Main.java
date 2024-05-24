@@ -41,6 +41,12 @@ public final class Main {
     System.out.println(result53);
     //  Le réseau contient donc un circuit à coût négatif accessible depuis le sommet 1.
 
+    //***********************************************************************
+    WeightedDigraph graph4 = WeightedDigraphReader.fromFile("data/reseau4.txt");
+    BellmanFordYensAlgorithm bfy4 = new BellmanFordYensAlgorithm();
+    BFYResult result4 = bfy4.compute(graph4, 0);
+    System.out.println(result4);
+    //  Le réseau contient donc un circuit à coût négatif accessible depuis le sommet 1.
 
   }
 }
