@@ -38,9 +38,12 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
           k++;
           if (k == vertices) {
             // Détecter un circuit absorbant
-            return new BFYResult.NegativeCycle(findNegativeCycle(graph, distance, predecessor), -1);
+            List<Integer> cycle = findNegativeCycle(graph, distance, predecessor);
+            int length = calculateCycleLength(graph, cycle);
+            return new BFYResult.NegativeCycle(cycle, length);
+          }else {
+            queue.add(null); // Réinsérer la sentinelle
           }
-          queue.add(null); // Réinsérer la sentinelle
         }
       } else {
         for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(current)) {
@@ -101,6 +104,21 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     return cycle;
   }
 
+  private int calculateCycleLength(WeightedDigraph graph, List<Integer> cycle) {
+    cycle = cycle.reversed();
+    int length = 0;
+    for (int i = 0; i < cycle.size() - 1; i++) {
+      int from = cycle.get(i);
+      int to = cycle.get(i + 1);
+      for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(from)) {
+        if (edge.to() == to) {
+          length += edge.weight();
+          break;
+        }
+      }
+    }
+    return length;
+  }
 
 }
 
