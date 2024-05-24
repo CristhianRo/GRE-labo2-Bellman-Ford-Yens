@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.HashSet;
+import java.util.Set;
 
 import gre.lab2.graph.BFYResult;
 import gre.lab2.graph.IBellmanFordYensAlgorithm;
@@ -13,82 +15,86 @@ import gre.lab2.graph.WeightedDigraph;
 public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm {
   @Override
   public BFYResult compute(WeightedDigraph graph, int from) {
-    int n = graph.getNVertices();
-    int[] distances = new int[n];
-    int[] predecessors = new int[n];
-    Arrays.fill(distances, Integer.MAX_VALUE);
-    Arrays.fill(predecessors, BFYResult.UNREACHABLE);
-    distances[from] = 0;
-
-    int k = 0;  // Compteur d'itérations
+    int vertices = graph.getNVertices();
+    int[] distance = new int[vertices];
+    int[] predecessor = new int[vertices];
     Queue<Integer> queue = new LinkedList<>();
+
+    // Initialiser les distances et les prédécesseurs
+    Arrays.fill(distance, Integer.MAX_VALUE);
+    Arrays.fill(predecessor, BFYResult.UNREACHABLE);
+
+    distance[from] = 0;
+    int k = 0;
+
     queue.add(from);
-    queue.add(null);  // Sentinelle
+    queue.add(null); // Sentinelle
 
     while (!queue.isEmpty()) {
-      Integer u = queue.poll();
+      Integer current = queue.poll();
 
-      if (u == null) {  // Sentinelle
+      if (current == null) {
         if (!queue.isEmpty()) {
           k++;
-          if (k == n) {
-            return new BFYResult.NegativeCycle(new ArrayList<>(), -1);  // Placeholder for indicating a negative cycle
+          if (k == vertices) {
+            // Détecter un circuit absorbant
+            return new BFYResult.NegativeCycle(findNegativeCycle(graph, distance, predecessor), -1);
           }
-          queue.add(null);  // Réinsérer la sentinelle
+          queue.add(null); // Réinsérer la sentinelle
         }
       } else {
-        for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(u)) {
-          int v = edge.to();
-          int weight = edge.weight();
-          if (distances[u] != Integer.MAX_VALUE && distances[u] + weight < distances[v]) {
-            distances[v] = distances[u] + weight;
-            predecessors[v] = u;
-            if (!queue.contains(v)) {
-              queue.add(v);
+        for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(current)) {
+          int neighbor = edge.to();
+          int newDist = distance[current] + edge.weight();
+          if (newDist < distance[neighbor]) {
+            distance[neighbor] = newDist;
+            predecessor[neighbor] = current;
+            if (!queue.contains(neighbor)) {
+              queue.add(neighbor);
             }
           }
         }
       }
     }
 
-    return new BFYResult.ShortestPathTree(distances, predecessors);
+    return new BFYResult.ShortestPathTree(distance, predecessor);
   }
 
-  private BFYResult findNegativeCycle(int[] predecessors, int start) {
-    int n = predecessors.length;
-    boolean[] visited = new boolean[n];
-    int current = start;
+  private List<Integer> findNegativeCycle(WeightedDigraph graph, int[] distance, int[] predecessor) {
+    // Cette méthode devrait implémenter la logique pour trouver le premier circuit absorbant
+    // à partir des prédécesseurs et des distances.
+    // Cette implémentation est simplifiée et peut nécessiter des ajustements.
 
-    // Find a vertex on the cycle
-    for (int i = 0; i < n; i++) {
-      current = predecessors[current];
-    }
-
-    // Collect the cycle vertices
+    Set<Integer> visited = new HashSet<>();
     List<Integer> cycle = new ArrayList<>();
-    int cycleStart = current;
-    do {
-      cycle.add(current);
-      current = predecessors[current];
-    } while (current != cycleStart);
 
-    cycle.add(cycleStart);
-    int cycleLength = 0;
-    for (int i = 0; i < cycle.size() - 1; i++) {
-      cycleLength += getEdgeWeight(cycle.get(i), cycle.get(i + 1));
+    for (int i = 0; i < predecessor.length; i++) {
+      if (visited.contains(i)) continue;
+
+      Set<Integer> cycleCheck = new HashSet<>();
+      int current = i;
+
+      while (current != BFYResult.UNREACHABLE && !cycleCheck.contains(current)) {
+        cycleCheck.add(current);
+        current = predecessor[current];
+      }
+
+      if (current != BFYResult.UNREACHABLE) {
+        int start = current;
+        cycle.add(start);
+        current = predecessor[start];
+        while (current != start) {
+          cycle.add(current);
+          current = predecessor[current];
+        }
+        cycle.add(start); // Pour compléter le cycle
+        break;
+      }
+
+      visited.addAll(cycleCheck);
     }
 
-    return new BFYResult.NegativeCycle(cycle, cycleLength);
-  }
-
-  private int getEdgeWeight(int from, int to) {
-    // This method should retrieve the actual weight of the edge from 'from' to 'to'.
-    // In this context, you may need to maintain a reference to the graph to get the edge weight.
-    // Here we assume there's a way to get this information, perhaps via a map or additional method in the WeightedDigraph class.
-
-
-
-    return 0; // Placeholder, replace with actual edge weight retrieval logic.
+    return cycle;
   }
 
 }
