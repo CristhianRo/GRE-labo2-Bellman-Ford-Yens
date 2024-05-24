@@ -1,24 +1,20 @@
 package gre.lab2.groupG;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import gre.lab2.graph.BFYResult;
 import gre.lab2.graph.IBellmanFordYensAlgorithm;
 import gre.lab2.graph.WeightedDigraph;
 
 public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm {
+  private static final int SENTINEL = -2;
+
   @Override
   public BFYResult compute(WeightedDigraph graph, int from) {
     int vertices = graph.getNVertices();
     int[] distance = new int[vertices];
     int[] predecessor = new int[vertices];
-    Queue<Integer> queue = new LinkedList<>();
+    Queue<Integer> queue = new ArrayDeque<>();
 
     // Initialiser les distances et les prédécesseurs
     Arrays.fill(distance, Integer.MAX_VALUE);
@@ -28,12 +24,12 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     int k = 0;
 
     queue.add(from);
-    queue.add(null); // Sentinelle
+    queue.add(SENTINEL); // Sentinelle
 
     while (!queue.isEmpty()) {
       Integer current = queue.poll();
 
-      if (current == null) {
+      if (current == SENTINEL) {
         if (!queue.isEmpty()) {
           k++;
           if (k == vertices) {
@@ -41,8 +37,8 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
             List<Integer> cycle = findNegativeCycle(graph, distance, predecessor);
             int length = calculateCycleLength(graph, cycle);
             return new BFYResult.NegativeCycle(cycle, length);
-          }else {
-            queue.add(null); // Réinsérer la sentinelle
+          } else {
+            queue.add(SENTINEL); // Réinsérer la sentinelle
           }
         }
       } else {
@@ -101,11 +97,10 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
       }
     }
 
-    return cycle;
+    return cycle.reversed();
   }
 
   private int calculateCycleLength(WeightedDigraph graph, List<Integer> cycle) {
-    cycle = cycle.reversed();
     int length = 0;
     for (int i = 0; i < cycle.size() - 1; i++) {
       int from = cycle.get(i);
