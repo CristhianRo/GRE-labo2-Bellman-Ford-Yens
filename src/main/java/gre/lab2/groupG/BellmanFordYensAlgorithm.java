@@ -12,18 +12,18 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
 
   @Override
   public BFYResult compute(WeightedDigraph graph, int from) {
-    int vertices = graph.getNVertices();
-    int[] distance = new int[vertices];
-    int[] predecessor = new int[vertices];
-    Queue<Integer> queue = new ArrayDeque<>();
-    boolean[] inQueue = new boolean[vertices];
+    int nbVertices = graph.getNVertices();
+    int[] distance = new int[nbVertices];
+    int[] predecessor = new int[nbVertices];
+    Queue<Integer> queue = new ArrayDeque<>(); // File des sommets à traiter
+    boolean[] inQueue = new boolean[nbVertices];
 
     // Initialiser les distances et les prédécesseurs
     Arrays.fill(distance, Integer.MAX_VALUE);
     Arrays.fill(predecessor, BFYResult.UNREACHABLE);
 
     distance[from] = 0;
-    int k = 0;
+    int compteurIterations = 0;
 
     queue.add(from);
     inQueue[from] = true;
@@ -36,10 +36,10 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
 
       if (current == SENTINEL) {
         if (!queue.isEmpty()) {
-          k++;
-          if (k == vertices) {
+          compteurIterations++;
+          if (compteurIterations == nbVertices) {
             // Détecter un circuit absorbant
-            List<Integer> cycle = findNegativeCycle(graph, distance, predecessor);
+            List<Integer> cycle = findNegativeCycle(predecessor);
             return new BFYResult.NegativeCycle(cycle, calculateCycleLength(graph, cycle));
 
           } else {
@@ -65,10 +65,7 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     return new BFYResult.ShortestPathTree(distance, predecessor);
   }
 
-  private List<Integer> findNegativeCycle(WeightedDigraph graph, int[] distance, int[] predecessor) {
-    // Cette méthode devrait implémenter la logique pour trouver le premier circuit absorbant
-    // à partir des prédécesseurs et des distances.
-    // Cette implémentation est simplifiée et peut nécessiter des ajustements.
+  private List<Integer> findNegativeCycle(int[] predecessor) {
 
     boolean[] visited = new boolean[predecessor.length];
     List<Integer> cycle = new LinkedList<>();
@@ -92,7 +89,8 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
           cycle.add(current);
           current = predecessor[current];
         }
-        cycle.add(start); // Pour compléter le cycle
+
+        cycle.add(start); // Pour compléter le cycle rajouter le sommet de départ
         break;
       }
 
@@ -103,17 +101,22 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
       }
     }
 
-    return cycle.reversed();
+    Collections.reverse(cycle);
+    return cycle;
   }
 
   private int calculateCycleLength(WeightedDigraph graph, List<Integer> cycle) {
     int length = 0;
+
+    // Parcourir tous les sommets du cycle
     for (int i = 0; i < cycle.size() - 1; i++) {
       int from = cycle.get(i);
       int to = cycle.get(i + 1);
+
+      // Trouver l'arête correspondante de 'from' à 'to'
       for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(from)) {
         if (edge.to() == to) {
-          length += edge.weight();
+          length += edge.weight(); // Ajouter le poids de l'arête à la longueur du cycle
           break;
         }
       }
