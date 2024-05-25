@@ -7,6 +7,7 @@ import gre.lab2.graph.IBellmanFordYensAlgorithm;
 import gre.lab2.graph.WeightedDigraph;
 
 public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm {
+
   private static final int SENTINEL = -2;
 
   @Override
@@ -15,6 +16,7 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     int[] distance = new int[vertices];
     int[] predecessor = new int[vertices];
     Queue<Integer> queue = new ArrayDeque<>();
+    boolean[] inQueue = new boolean[vertices];
 
     // Initialiser les distances et les prédécesseurs
     Arrays.fill(distance, Integer.MAX_VALUE);
@@ -24,10 +26,13 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     int k = 0;
 
     queue.add(from);
+    inQueue[from] = true;
     queue.add(SENTINEL); // Sentinelle
 
     while (!queue.isEmpty()) {
       Integer current = queue.poll();
+      // Retirer le sommet de la file d'attente
+      if(current != SENTINEL) inQueue[current] = false;
 
       if (current == SENTINEL) {
         if (!queue.isEmpty()) {
@@ -35,8 +40,8 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
           if (k == vertices) {
             // Détecter un circuit absorbant
             List<Integer> cycle = findNegativeCycle(graph, distance, predecessor);
-            int length = calculateCycleLength(graph, cycle);
-            return new BFYResult.NegativeCycle(cycle, length);
+            return new BFYResult.NegativeCycle(cycle, calculateCycleLength(graph, cycle));
+
           } else {
             queue.add(SENTINEL); // Réinsérer la sentinelle
           }
@@ -48,8 +53,9 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
           if (newDist < distance[neighbor]) {
             distance[neighbor] = newDist;
             predecessor[neighbor] = current;
-            if (!queue.contains(neighbor)) {
+            if (!inQueue[neighbor]) {
               queue.add(neighbor);
+              inQueue[neighbor] = true;
             }
           }
         }
@@ -65,7 +71,7 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
     // Cette implémentation est simplifiée et peut nécessiter des ajustements.
 
     boolean[] visited = new boolean[predecessor.length];
-    List<Integer> cycle = new ArrayList<>();
+    List<Integer> cycle = new LinkedList<>();
 
     for (int i = 0; i < predecessor.length; i++) {
       if (visited[i]) continue;
