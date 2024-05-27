@@ -12,7 +12,7 @@ import java.io.File;
  * where each file contains data for a weighted directed graph. The Bellman-Ford-Yens algorithm is
  * applied to each graph, and the results are printed.
  *
- * @author Cristhian Ronquillo
+ * @author Cristhian Ronquillo, Mehdi Benzekri
  */
 public final class Main {
 

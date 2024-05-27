@@ -14,14 +14,16 @@ import gre.lab2.graph.WeightedDigraph;
  * It works by running the Bellman-Ford algorithm multiple times, each time with a different vertex as the source.
  * If a negative cycle is reachable from the source vertex, the algorithm will detect it.
  *
- * @author Cristhian Ronquillo
+ * @author Cristhian Ronquillo, Mehdi Benzekri
  */
 public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm {
 
   private static final int SENTINEL = -2;
 
   /**
- * This method computes the shortest path tree or detects a negative cycle in a weighted directed graph using the Bellman-Ford algorithm.
+ * This method computes the shortest path tree or detects a negative cycle
+   * in a weighted directed graph using the Bellman-Ford algorithm.
+   *
  * @param graph The weighted directed graph in which to compute the shortest path tree or detect a negative cycle.
  * @param from The source vertex from which to compute the shortest path tree.
  * @return A {@link BFYResult} object that represents either the shortest path tree or a negative cycle.
@@ -30,12 +32,16 @@ public final class BellmanFordYensAlgorithm implements IBellmanFordYensAlgorithm
 public BFYResult compute(WeightedDigraph graph, int from) {
   // The number of vertices in the graph.
   int nbVertices = graph.getNVertices();
+
   // The array of shortest path distances from the source to each vertex.
   int[] distances = new int[nbVertices];
+
   // The array of predecessors for each vertex on the shortest path from the source.
   int[] predecessors = new int[nbVertices];
+
   // The queue of vertices to be processed.
   Queue<Integer> queue = new ArrayDeque<>();
+
   // The array that keeps track of whether a vertex is in the queue.
   boolean[] inQueue = new boolean[nbVertices];
 
@@ -45,12 +51,14 @@ public BFYResult compute(WeightedDigraph graph, int from) {
 
   // The distances from the source to itself is 0.
   distances[from] = 0;
+
   // The counter for the number of iterations.
   int counterIterations = 0;
 
   // Add the source to the queue and mark it as in the queue.
   queue.add(from);
   inQueue[from] = true;
+
   // Add a sentinel to the queue.
   queue.add(SENTINEL);
 
@@ -64,12 +72,14 @@ public BFYResult compute(WeightedDigraph graph, int from) {
     if (current == SENTINEL) {
       // ...and the queue is not empty...
       if (!queue.isEmpty()) {
-        // ...then increment the counter of iterations.
+        // increment counter.
         ++counterIterations;
+
         // If the number of iterations equals the number of vertices...
         if (counterIterations == nbVertices) {
           // ...then a negative cycle has been detected because there are still possible improvements.
           List<Integer> cycle = findNegativeCycle(predecessors);
+
           // Return the negative cycle and its length.
           return new BFYResult.NegativeCycle(cycle, calculateCycleLength(graph, cycle));
         } else {
@@ -83,11 +93,13 @@ public BFYResult compute(WeightedDigraph graph, int from) {
       for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(current)) {
         int neighbor = edge.to();
         int newDist = distances[current] + edge.weight();
+
         // If the new distances is shorter...
         if (distances[neighbor] > newDist) {
           // ...then update the distances and predecessors.
           distances[neighbor] = newDist;
           predecessors[neighbor] = current;
+
           // If the neighbor is not in the queue...
           if (!inQueue[neighbor]) {
             // ...then add it to the queue and mark it as in the queue.
@@ -108,7 +120,8 @@ public BFYResult compute(WeightedDigraph graph, int from) {
  * It uses the predecessor array that was computed by the Bellman-Ford algorithm.
  *
  * @param predecessors The array of predecessors for each vertex on the shortest path from the source.
- * @return A list of vertices that form a negative cycle, or an empty list if no such cycle exists.
+ * @return A list of vertices that form a negative cycle with the same vertex for the first and last element,
+  * or an empty list if no such cycle exists.
  */
 private List<Integer> findNegativeCycle(int[] predecessors) {
   // This array keeps track of the vertices that have been visited.
@@ -125,15 +138,14 @@ private List<Integer> findNegativeCycle(int[] predecessors) {
     boolean[] cycleCheck = new boolean[predecessors.length];
     int current = i;
 
-    // Traverse the predecessors until we reach an unreachable vertex or a vertex that has been visited in the current cycle.
+    // Traverse the predecessors to detect a cycle.
     while (current != BFYResult.UNREACHABLE && !cycleCheck[current]) {
       cycleCheck[current] = true;
       current = predecessors[current];
     }
 
-    // If we found a cycle...
+    // If we found a cycle, add the vertices of the cycle to the cycle list.
     if (current != BFYResult.UNREACHABLE) {
-      // ...then add the vertices of the cycle to the cycle list.
       int start = current;
       cycle.add(start);
       current = predecessors[start];
@@ -175,11 +187,11 @@ private int calculateCycleLength(WeightedDigraph graph, List<Integer> cycle) {
     int from = cycle.get(i);
     int to = cycle.get(i + 1);
 
-    // Iterate over the outgoing edges of the current vertex.
+    // Find the edge that leads to the next vertex in the cycle and add its weight to the total length.
     for (WeightedDigraph.Edge edge : graph.getOutgoingEdges(from)) {
-      // If the edge leads to the next vertex in the cycle...
+
+      // If the edge leads to the next vertex in the cycle add its weight to the total length.
       if (edge.to() == to) {
-        // ...then add the weight of the edge to the total length of the cycle and break the loop.
         length += edge.weight();
         break;
       }
